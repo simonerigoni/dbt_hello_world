@@ -13,9 +13,12 @@ IGNORED = shutil.ignore_patterns("target", "logs", "dbt_packages", "*.duckdb", "
 
 @pytest.fixture(scope="module")
 def project_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """Copy dbt_project to a temporary folder so the build does not touch the repository."""
-    target = tmp_path_factory.mktemp("dbt") / "dbt_project"
+    """Copy dbt_project and data to a temporary folder so the build does not touch the repository."""
+    root = tmp_path_factory.mktemp("dbt")
+    target = root / "dbt_project"
     shutil.copytree(generate_lineage.DBT_PROJECT, target, ignore=IGNORED)
+    # The sources read the CSV files from ../data, relative to the dbt_project folder
+    shutil.copytree(generate_lineage.ROOT / "data", root / "data")
     return target
 
 
