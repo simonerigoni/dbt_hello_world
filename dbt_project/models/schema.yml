@@ -2,11 +2,11 @@ version: 2
 
 models:
   - name: bronze_customers
-    description: Bronze layer, raw customers without any change
+    description: "{{ doc('bronze_layer') }}"
   - name: bronze_orders
-    description: Bronze layer, raw orders without any change
+    description: "{{ doc('bronze_layer') }}"
   - name: silver_orders
-    description: Silver layer, completed orders with proper types and the customer details. Incremental, so later runs only process the new orders
+    description: "{{ doc('silver_orders') }}"
     columns:
       - name: order_id
         description: Order identifier
@@ -29,7 +29,7 @@ models:
       - name: country
         description: Country where the customer lives
   - name: gold_revenue_by_country
-    description: Gold layer, number of orders, revenue and average order value per country
+    description: "{{ doc('gold_revenue_by_country') }}"
     config:
       contract:
         enforced: true
@@ -59,3 +59,11 @@ models:
       - name: average_order_value
         description: Revenue divided by the number of orders, computed with the safe_divide macro
         data_type: double
+  - name: metricflow_time_spine
+    description: "{{ doc('metricflow_time_spine') }}"
+    time_spine:
+      standard_granularity_column: date_day
+    columns:
+      - name: date_day
+        description: Day
+        granularity: day

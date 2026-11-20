@@ -1,0 +1,128 @@
+{
+  "nodes": [
+    {
+      "name": "metricflow_time_spine",
+      "type": "model",
+      "column": 0,
+      "row": 0
+    },
+    {
+      "name": "raw_customers",
+      "type": "source",
+      "column": 0,
+      "row": 1
+    },
+    {
+      "name": "raw_orders",
+      "type": "source",
+      "column": 0,
+      "row": 2
+    },
+    {
+      "name": "bronze_customers",
+      "type": "model",
+      "column": 1,
+      "row": 0
+    },
+    {
+      "name": "bronze_orders",
+      "type": "model",
+      "column": 1,
+      "row": 1
+    },
+    {
+      "name": "country_codes",
+      "type": "seed",
+      "column": 2,
+      "row": 0
+    },
+    {
+      "name": "customers_snapshot",
+      "type": "snapshot",
+      "column": 2,
+      "row": 1
+    },
+    {
+      "name": "silver_orders",
+      "type": "model",
+      "column": 2,
+      "row": 2
+    },
+    {
+      "name": "gold_revenue_by_country",
+      "type": "model",
+      "column": 3,
+      "row": 0
+    },
+    {
+      "name": "orders",
+      "type": "semantic_model",
+      "column": 3,
+      "row": 1
+    },
+    {
+      "name": "revenue_dashboard",
+      "type": "exposure",
+      "column": 4,
+      "row": 0
+    },
+    {
+      "name": "number_of_orders",
+      "type": "metric",
+      "column": 4,
+      "row": 1
+    },
+    {
+      "name": "total_revenue",
+      "type": "metric",
+      "column": 4,
+      "row": 2
+    }
+  ],
+  "edges": [
+    [
+      "bronze_customers",
+      "silver_orders"
+    ],
+    [
+      "bronze_customers",
+      "customers_snapshot"
+    ],
+    [
+      "bronze_orders",
+      "silver_orders"
+    ],
+    [
+      "gold_revenue_by_country",
+      "revenue_dashboard"
+    ],
+    [
+      "silver_orders",
+      "gold_revenue_by_country"
+    ],
+    [
+      "silver_orders",
+      "orders"
+    ],
+    [
+      "country_codes",
+      "gold_revenue_by_country"
+    ],
+    [
+      "orders",
+      "number_of_orders"
+    ],
+    [
+      "orders",
+      "total_revenue"
+    ],
+    [
+      "raw_customers",
+      "bronze_customers"
+    ],
+    [
+      "raw_orders",
+      "bronze_orders"
+    ]
+  ]
+}
