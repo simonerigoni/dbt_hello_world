@@ -18,6 +18,14 @@ repos:
         entry: uv run ruff format --force-exclude
         language: system
         types_or: [python, pyi]
+      - id: sqlfluff
+        name: sqlfluff lint
+        # The dbt templater compiles the whole project, so lint it in one serial run
+        entry: uv run sqlfluff lint dbt_project
+        language: system
+        files: ^(\.sqlfluff|dbt_project/.*\.sql)$
+        pass_filenames: false
+        require_serial: true
       - id: pyright
         name: pyright
         entry: uv run pyright

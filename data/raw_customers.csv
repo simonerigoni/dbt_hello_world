@@ -1,5 +1,5 @@
-customer_id,customer_name,country
-1,Alice,Italy
-2,Bob,Netherlands
-3,Carla,Italy
-4,David,Switzerland
+customer_id,customer_name,country,_loaded_at
+1,Alice,Italy,2026-03-03 08:00:00
+2,Bob,Netherlands,2026-03-03 08:00:00
+3,Carla,Italy,2026-03-03 08:00:00
+4,David,Switzerland,2026-03-03 08:00:00

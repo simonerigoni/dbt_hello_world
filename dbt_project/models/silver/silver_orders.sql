@@ -1,5 +1,6 @@
 -- Silver: completed orders with proper types, enriched with the customer.
--- Incremental: after the first run, only orders newer than the latest one already loaded are processed
+-- Incremental: after the first run, only the orders from the latest loaded date onwards
+-- are processed
 {{ config(materialized='incremental', unique_key='order_id') }}
 
 select

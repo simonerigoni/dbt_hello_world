@@ -1,0 +1,45 @@
+version: 2
+
+semantic_models:
+  - name: orders
+    description: The completed orders, for the metrics of the semantic layer
+    model: ref('silver_orders')
+    defaults:
+      agg_time_dimension: order_date
+    entities:
+      - name: order
+        type: primary
+        expr: order_id
+      - name: customer
+        type: foreign
+        expr: customer_id
+    dimensions:
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: country
+        type: categorical
+    measures:
+      - name: order_amount
+        description: Sum of the order amounts in euros
+        agg: sum
+        expr: amount
+      - name: order_count
+        description: Number of orders
+        agg: count
+        expr: order_id
+
+metrics:
+  - name: total_revenue
+    label: Total revenue
+    description: Total amount of the completed orders in euros
+    type: simple
+    type_params:
+      measure: order_amount
+  - name: number_of_orders
+    label: Number of orders
+    description: Number of completed orders
+    type: simple
+    type_params:
+      measure: order_count

@@ -1,0 +1,12 @@
+version: 2
+
+exposures:
+  - name: revenue_dashboard
+    label: Revenue dashboard
+    type: dashboard
+    maturity: low
+    description: A made-up dashboard with the revenue per country, built on the gold layer
+    depends_on:
+      - ref('gold_revenue_by_country')
+    owner:
+      name: Simone Rigoni
