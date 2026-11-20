@@ -12,3 +12,12 @@ __pycache__/
 
 # Local DuckDB database
 *.duckdb
+
+# Pytest cache
+.pytest_cache/
+
+# Ruff cache
+.ruff_cache/
+
+# pytest-cov stuff
+.coverage
