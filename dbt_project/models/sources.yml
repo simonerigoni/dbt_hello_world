@@ -4,7 +4,7 @@ sources:
   - name: raw
     description: Raw CSV files in the data folder, read directly by DuckDB
     meta:
-      external_location: "data/{name}.csv"
+      external_location: "../data/{name}.csv"
     tables:
       - name: raw_customers
         description: One row per customer
