@@ -33,3 +33,6 @@ Overview of the status of the tasks of this project.
 - [x] Custom generic test `is_positive`
 - [x] Python package with the `src` layout and the `dbt-hello-world` CLI: data generator, runner and lineage graph
 - [x] dbt Python model `gold_customer_segments`
+- [x] Shared constants in `src/dbt_hello_world/config.py`
+- [x] `dbt-hello-world docs` CLI command
+- [x] dbt Python model `gold_customer_cohorts`
