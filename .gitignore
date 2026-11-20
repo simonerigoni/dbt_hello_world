@@ -1,0 +1,14 @@
+# Files, directories or patterns that should be excluded from Git tracking
+
+# Temp stuff
+temp/
+
+# Virtual enviroment
+.venv/
+
+# Python compiled files
+__pycache__/
+*.pyc
+
+# Local DuckDB database
+*.duckdb

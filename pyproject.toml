@@ -1,0 +1,21 @@
+[project]
+name = "dbt-hello-world"
+version = "0.1.0"
+description = "A simple dbt Hello World with DuckDB and bronze, silver and gold layers"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Simone Rigoni" }]
+requires-python = ">=3.11"
+dependencies = [
+    "dbt-core>=1.12.7",
+    "dbt-duckdb>=1.11.1",
+]
+
+[dependency-groups]
+dev = [
+    "matplotlib>=3.11.2",
+]
+
+[project.urls]
+Repository = "https://github.com/simonerigoni/dbt_hello_world"

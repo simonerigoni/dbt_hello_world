@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: bronze_customers
+    description: Bronze layer, raw customers without any change
+  - name: bronze_orders
+    description: Bronze layer, raw orders without any change
+  - name: silver_orders
+    description: Silver layer, completed orders with proper types and the customer details. Incremental, so later runs only process the new orders
+    columns:
+      - name: order_id
+        description: Order identifier
+        data_tests:
+          - unique
+          - not_null
+      - name: order_date
+        description: Date of the order
+      - name: amount
+        description: Order amount in euros
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
+      - name: customer_id
+        description: Customer who placed the order
+      - name: customer_name
+        description: Customer name
+      - name: country
+        description: Country where the customer lives
+  - name: gold_revenue_by_country
+    description: Gold layer, number of orders, revenue and average order value per country
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: country
+        description: Country name
+        data_type: varchar
+        constraints:
+          - type: not_null
+        data_tests:
+          - unique
+          - not_null
+      - name: country_code
+        description: ISO 3166-1 alpha-2 country code, from the country_codes seed
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: region
+        description: Region of Europe, from the country_codes seed
+        data_type: varchar
+      - name: number_of_orders
+        description: Number of completed orders
+        data_type: bigint
+      - name: revenue
+        description: Total amount of the completed orders in euros
+        data_type: decimal(38, 2)
+      - name: average_order_value
+        description: Revenue divided by the number of orders, computed with the safe_divide macro
+        data_type: double

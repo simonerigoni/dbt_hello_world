@@ -1,0 +1,23 @@
+name: dbt_hello_world
+version: "0.1.0"
+profile: dbt_hello_world
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+analysis-paths: ["analyses"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+test-paths: ["tests"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  dbt_hello_world:
+    bronze:
+      +materialized: view
+    silver:
+      +materialized: incremental
+    gold:
+      +materialized: table

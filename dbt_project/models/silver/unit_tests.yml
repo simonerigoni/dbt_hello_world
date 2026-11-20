@@ -1,0 +1,23 @@
+version: 2
+
+unit_tests:
+  - name: test_silver_orders_keeps_only_completed_orders
+    description: Cancelled orders are filtered out and the customer details are joined to the completed ones
+    model: silver_orders
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: ref('bronze_orders')
+        rows:
+          - {order_id: 1, customer_id: 10, order_date: "2026-01-01", amount: 10.50, status: completed}
+          - {order_id: 2, customer_id: 20, order_date: "2026-01-02", amount: 20.00, status: cancelled}
+          - {order_id: 3, customer_id: 20, order_date: "2026-01-03", amount: 30.00, status: completed}
+      - input: ref('bronze_customers')
+        rows:
+          - {customer_id: 10, customer_name: Anna, country: Italy}
+          - {customer_id: 20, customer_name: Ben, country: Netherlands}
+    expect:
+      rows:
+        - {order_id: 1, order_date: "2026-01-01", amount: 10.50, customer_id: 10, customer_name: Anna, country: Italy}
+        - {order_id: 3, order_date: "2026-01-03", amount: 30.00, customer_id: 20, customer_name: Ben, country: Netherlands}

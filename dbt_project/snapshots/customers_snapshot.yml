@@ -1,0 +1,10 @@
+version: 2
+
+snapshots:
+  - name: customers_snapshot
+    description: History of the customers, a new version is stored every time a customer changes (slowly changing dimension type 2)
+    relation: ref('bronze_customers')
+    config:
+      unique_key: customer_id
+      strategy: check
+      check_cols: all

@@ -1,0 +1,7 @@
+dbt_hello_world:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: dbt_hello_world.duckdb
+      threads: 1
