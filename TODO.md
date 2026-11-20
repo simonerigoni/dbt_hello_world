@@ -30,3 +30,4 @@ Overview of the status of the tasks of this project.
 - [x] Singular test and analysis
 - [x] Publish the dbt docs on GitHub Pages
 - [x] SQL linting with SQLFluff and lineage graph check in the tests
+- [x] Custom generic test `is_positive`

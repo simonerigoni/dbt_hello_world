@@ -18,14 +18,13 @@ models:
       - name: amount
         description: Order amount in euros
         data_tests:
-          - dbt_utils.accepted_range:
-              arguments:
-                min_value: 0
-                inclusive: false
+          - is_positive
       - name: customer_id
         description: Customer who placed the order
       - name: customer_name
         description: Customer name
+        data_tests:
+          - dbt_utils.not_empty_string
       - name: country
         description: Country where the customer lives
   - name: gold_revenue_by_country
@@ -53,12 +52,18 @@ models:
       - name: number_of_orders
         description: Number of completed orders
         data_type: bigint
+        data_tests:
+          - is_positive
       - name: revenue
         description: Total amount of the completed orders in euros
         data_type: decimal(38, 2)
+        data_tests:
+          - is_positive
       - name: average_order_value
         description: Revenue divided by the number of orders, computed with the safe_divide macro
         data_type: double
+        data_tests:
+          - is_positive
   - name: metricflow_time_spine
     description: "{{ doc('metricflow_time_spine') }}"
     time_spine:

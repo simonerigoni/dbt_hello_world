@@ -44,6 +44,10 @@ sources:
             description: Date of the order
           - name: amount
             description: Order amount in euros
+            data_tests:
+              - is_positive:
+                  arguments:
+                    allow_zero: true
           - name: status
             description: Order status
             data_tests:

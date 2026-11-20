@@ -17,7 +17,8 @@ The project also shows:
 - **Unit test**: `models/silver/unit_tests.yml` gives `silver_orders` a few made-up orders and customers, one of them cancelled, and checks that only the completed orders come out with the customer details.
 - **Snapshot**: `customers_snapshot` in `snapshots/customers_snapshot.yml` keeps the history of the customers. When a customer changes, the old version is closed and a new one is added (slowly changing dimension type 2).
 - **Incremental model**: `silver_orders` uses `order_id` as unique key and, with `is_incremental()`, only reads the orders from the latest loaded date onwards.
-- **Package**: `packages.yml` installs [dbt_utils](https://hub.getdbt.com/dbt-labs/dbt_utils/latest/), and its `accepted_range` test checks that every order amount is greater than 0.
+- **Custom generic test**: `is_positive` in `tests/generic/is_positive.sql` is a reusable test written with `{% test %}`, applied in the YAML files like the built-in ones. It checks that every value of a column is greater than 0, or at least 0 with the optional `allow_zero: true` argument. It runs on the silver `amount`, on the gold `number_of_orders`, `revenue` and `average_order_value`, and with `allow_zero: true` on the raw `amount`, where it only rejects negative amounts.
+- **Package**: `packages.yml` installs [dbt_utils](https://hub.getdbt.com/dbt-labs/dbt_utils/latest/), and its `not_empty_string` test checks that no silver order has an empty customer name.
 - **Contract**: `gold_revenue_by_country` has an enforced contract, so the build fails if a column name or data type changes.
 - **Source freshness**: every raw CSV file has a `_loaded_at` column and `sources.yml` sets `loaded_at_field` and a `freshness` block, so `dbt source freshness` checks how old the data is. It only has a `warn_after` of 1 day and no `error_after`: the sample data was loaded in early 2026 and never changes, so the check always warns that it is stale but never fails. The bronze views keep `_loaded_at`, the silver model drops it.
 - **Exposure**: `models/exposures.yml` declares `revenue_dashboard`, a made-up dashboard that uses the gold layer, so the lineage graph ends in a consumer of the data.
@@ -67,7 +68,7 @@ The SQL files are linted with [SQLFluff](https://sqlfluff.com/) and its dbt temp
 
 Tests are implemented using `pytest` and coverage is tracked with `pytest-cov`. `tests/test_dbt_project.py` copies `dbt_project` and `data` to a temporary folder and runs `dbt deps` there, so nothing touches the local DuckDB file. Then it:
 
-- runs `dbt build` twice, so all the data tests, unit tests and the singular test run, also on the incremental model and the snapshot
+- runs `dbt build` twice, so all the data tests, including the custom generic test, the unit tests and the singular test run, also on the incremental model and the snapshot
 - runs `dbt source freshness`, which warns because the sample data is old, but does not fail
 - runs `dbt compile` and `dbt docs generate --static`
 - lints the SQL files with SQLFluff, so the CI checks them too
@@ -108,6 +109,7 @@ Run them from the `dbt_project` folder, prefixed with `uv run`.
 | `dbt test` | Runs the data tests and the unit tests |
 | `dbt test --select test_type:unit` | Runs only the unit tests |
 | `dbt test --select test_type:singular` | Runs only the singular tests in `tests` |
+| `dbt test --select test_name:is_positive` | Runs only the `is_positive` custom generic test |
 | `dbt source freshness` | Checks how old the raw data is, using `_loaded_at` |
 | `dbt build` | Runs seeds, models, snapshots and tests in dependency order |
 | `dbt run --select silver_orders+` | Builds `silver_orders` and everything downstream of it |
