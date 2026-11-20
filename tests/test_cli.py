@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from dbt_hello_world import DATA, cli, lineage, runner
+from dbt_hello_world import cli, config, lineage, runner
 
 
 def test_generate_arguments() -> None:
@@ -19,10 +19,15 @@ def test_generate_arguments() -> None:
 
 def test_defaults() -> None:
     args = cli.build_parser().parse_args(["generate", "--loaded-at", "2026-03-01T08:00:00"])
-    assert (args.customers, args.orders, args.seed, args.output) == (10, 50, 42, cli.GENERATED)
+    assert (args.customers, args.orders, args.seed, args.output) == (
+        config.DEFAULT_CUSTOMERS,
+        config.DEFAULT_ORDERS,
+        config.DEFAULT_SEED,
+        config.GENERATED,
+    )
     assert args.loaded_at.isoformat() == "2026-03-01T08:00:00"
     args = cli.build_parser().parse_args(["run"])
-    assert (args.data, args.full_refresh) == (DATA, False)
+    assert (args.data, args.full_refresh) == (config.DATA, False)
 
 
 @pytest.mark.parametrize("argv", [[], ["unknown"], ["generate", "--orders", "0"]])
@@ -32,17 +37,17 @@ def test_invalid_arguments(argv: list[str]) -> None:
 
 
 def test_generated_data_does_not_overwrite_the_samples() -> None:
-    assert cli.GENERATED.resolve() != DATA.resolve()
-    assert cli.GENERATED.parts[-2:] == ("temp", "data")
+    assert config.GENERATED.resolve() != config.DATA.resolve()
+    assert config.GENERATED.parts[-2:] == ("temp", "data")
 
 
 def test_generate_command(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     assert (
         cli.main(["generate", "--customers", "2", "--orders", "3", "--output", str(tmp_path)]) == 0
     )
-    assert (tmp_path / "raw_customers.csv").exists()
-    assert (tmp_path / "raw_orders.csv").exists()
-    assert "raw_orders.csv" in capsys.readouterr().out
+    assert (tmp_path / config.RAW_CUSTOMERS_FILE).exists()
+    assert (tmp_path / config.RAW_ORDERS_FILE).exists()
+    assert config.RAW_ORDERS_FILE in capsys.readouterr().out
 
 
 @pytest.fixture
@@ -63,14 +68,14 @@ def test_run_command(fake_run: list, capsys: pytest.CaptureFixture[str]) -> None
     assert cli.main(["run", "--data", "some/folder", "--full-refresh"]) == 0
     assert fake_run == [(Path("some/folder"), True)]
     out = capsys.readouterr().out
-    assert all(table in out for table in cli.GOLD_TABLES)
+    assert all(table in out for table in config.GOLD_TABLES)
 
 
 def test_all_command(fake_run: list, tmp_path: Path) -> None:
     """all generates the data and runs the project on it, rebuilding from scratch."""
     assert cli.main(["all", "--orders", "5", "--output", str(tmp_path / "data")]) == 0
     assert fake_run == [(tmp_path / "data", True)]
-    assert (tmp_path / "data" / "raw_orders.csv").exists()
+    assert (tmp_path / "data" / config.RAW_ORDERS_FILE).exists()
 
 
 def test_lineage_command(monkeypatch: pytest.MonkeyPatch) -> None:

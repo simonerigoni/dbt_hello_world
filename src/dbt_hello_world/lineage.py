@@ -17,35 +17,21 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle  # noqa: E402
 
-from dbt_hello_world import DBT_PROJECT, IMAGES  # noqa: E402
+from dbt_hello_world import config  # noqa: E402
 from dbt_hello_world.runner import invoke  # noqa: E402
 
-OUTPUT = IMAGES / "dbt-dag.png"
-DESCRIPTION = IMAGES / "dbt-dag.json"
 
-# Same colors as the dbt docs lineage graph
-COLORS = {
-    "source": "#5fb825",
-    "seed": "#8eb0d6",
-    "model": "#0094b3",
-    "snapshot": "#88447d",
-    "semantic_model": "#ffa8c2",
-    "metric": "#ff5688",
-    "exposure": "#ff694b",
-}
-# Manifest sections that hold the nodes of the graph
-SECTIONS = ["nodes", "sources", "semantic_models", "metrics", "exposures"]
-
-
-def load_graph(project_dir: Path = DBT_PROJECT) -> tuple[dict[str, dict], list[tuple[str, str]]]:
+def load_graph(
+    project_dir: Path = config.DBT_PROJECT,
+) -> tuple[dict[str, dict], list[tuple[str, str]]]:
     """Parse the project and return its nodes and edges from the manifest."""
     with contextlib.chdir(project_dir):
         invoke(["parse", "--quiet"])
     manifest = json.loads((project_dir / "target" / "manifest.json").read_text(encoding="utf-8"))
     nodes = {}
-    for section in SECTIONS:
+    for section in config.MANIFEST_SECTIONS:
         for unique_id, node in manifest[section].items():
-            if node["resource_type"] in COLORS:
+            if node["resource_type"] in config.COLORS:
                 nodes[unique_id] = {"name": node["name"], "type": node["resource_type"]}
     edges = sorted(
         (parent, child)
@@ -105,7 +91,7 @@ def describe(nodes: dict[str, dict], edges: list[tuple[str, str]]) -> dict:
     }
 
 
-def draw(description: dict, output: Path = OUTPUT) -> None:
+def draw(description: dict, output: Path = config.LINEAGE_PNG) -> None:
     """Draw the boxes and arrows of the description and save the PNG."""
     width, height, x_gap, y_gap = 2.6, 0.6, 1.2, 0.5
     nodes = description["nodes"]
@@ -141,7 +127,7 @@ def draw(description: dict, output: Path = OUTPUT) -> None:
             width,
             height,
             boxstyle="round,pad=0.02,rounding_size=0.1",
-            color=COLORS[node["type"]],
+            color=config.COLORS[node["type"]],
         )
         ax.add_patch(box)
         ax.text(
@@ -154,8 +140,8 @@ def draw(description: dict, output: Path = OUTPUT) -> None:
             fontsize=9,
         )
 
-    used = [kind for kind in COLORS if any(node["type"] == kind for node in nodes)]
-    handles = [Rectangle((0, 0), 1, 1, color=COLORS[kind]) for kind in used]
+    used = [kind for kind in config.COLORS if any(node["type"] == kind for node in nodes)]
+    handles = [Rectangle((0, 0), 1, 1, color=config.COLORS[kind]) for kind in used]
     ax.legend(
         handles,
         [kind.replace("_", " ") for kind in used],
@@ -179,7 +165,7 @@ def to_json(description: dict) -> str:
     return json.dumps(description, indent=2) + "\n"
 
 
-def main(project_dir: Path = DBT_PROJECT, output: Path = OUTPUT) -> None:
+def main(project_dir: Path = config.DBT_PROJECT, output: Path = config.LINEAGE_PNG) -> None:
     """Write the JSON description and the PNG, next to each other."""
     description = describe(*load_graph(project_dir))
     json_path = output.with_suffix(".json")

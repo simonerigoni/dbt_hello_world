@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from dbt_hello_world import lineage
+from dbt_hello_world import config, lineage
 
 
 def test_assign_columns() -> None:
@@ -51,7 +51,7 @@ def test_draw(tmp_path: Path) -> None:
 
 
 def test_every_type_has_the_dbt_docs_color() -> None:
-    assert lineage.COLORS["exposure"] == "#ff694b"
-    assert set(lineage.COLORS) == {
+    assert config.COLORS["exposure"] == "#ff694b"
+    assert set(config.COLORS) == {
         "source", "seed", "model", "snapshot", "semantic_model", "metric", "exposure",
     }  # fmt: skip
