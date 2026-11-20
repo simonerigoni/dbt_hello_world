@@ -11,7 +11,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch  # noqa: E402
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle  # noqa: E402
 
 ROOT = Path(__file__).parent
 DBT_PROJECT = ROOT / "dbt_project"
@@ -81,13 +81,32 @@ def draw(nodes: dict[str, dict], edges: list[tuple[str, str]], column: dict[str,
         ax.add_patch(arrow)
     for node, (x, y) in position.items():
         box = FancyBboxPatch(
-            (x, y), width, height, boxstyle="round,pad=0.02,rounding_size=0.1", color=COLORS[nodes[node]["type"]]
+            (x, y),
+            width,
+            height,
+            boxstyle="round,pad=0.02,rounding_size=0.1",
+            color=COLORS[nodes[node]["type"]],
         )
         ax.add_patch(box)
-        ax.text(x + width / 2, y + height / 2, nodes[node]["name"], ha="center", va="center", color="white", fontsize=9)
+        ax.text(
+            x + width / 2,
+            y + height / 2,
+            nodes[node]["name"],
+            ha="center",
+            va="center",
+            color="white",
+            fontsize=9,
+        )
 
-    handles = [plt.Rectangle((0, 0), 1, 1, color=color) for color in COLORS.values()]
-    ax.legend(handles, COLORS.keys(), loc="upper center", bbox_to_anchor=(0.5, 0.0), ncol=len(COLORS), frameon=False)
+    handles = [Rectangle((0, 0), 1, 1, color=color) for color in COLORS.values()]
+    ax.legend(
+        handles,
+        COLORS.keys(),
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.0),
+        ncol=len(COLORS),
+        frameon=False,
+    )
     ax.set_xlim(-0.2, columns * (width + x_gap) - x_gap + 0.2)
     ax.set_ylim(-(rows - 1) * (height + y_gap) - 0.2, height + 0.2)
     ax.axis("off")
