@@ -5,6 +5,7 @@ They also check the SQL style, the lineage graph and the runner on generated dat
 
 import shutil
 import subprocess
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -45,6 +46,27 @@ def test_dbt_build(in_project: Path) -> None:
     runner.invoke(["build"])
 
 
+def test_gold_customer_cohorts_on_sample_data(in_project: Path) -> None:
+    """The sample orders produce a known retention table, including months with no orders."""
+    runner.invoke(["build"])
+    columns, rows = runner.read_table(in_project / "x.duckdb", "gold_customer_cohorts")
+    assert columns == [
+        "cohort_month",
+        "month_number",
+        "cohort_size",
+        "active_customers",
+        "retention_rate",
+    ]
+    assert rows == [
+        (date(2026, 1, 1), 0, 2, 2, 1.0),
+        (date(2026, 1, 1), 1, 2, 0, 0.0),
+        (date(2026, 1, 1), 2, 2, 1, 0.5),
+        (date(2026, 2, 1), 0, 1, 1, 1.0),
+        (date(2026, 2, 1), 1, 1, 0, 0.0),
+        (date(2026, 3, 1), 0, 1, 1, 1.0),
+    ]
+
+
 def test_dbt_source_freshness(in_project: Path) -> None:
     """The freshness check runs. The sample data is old, so it only warns and does not fail."""
     runner.invoke(["source", "freshness"])
@@ -79,6 +101,20 @@ def test_run_on_generated_data(project_dir: Path, tmp_path: Path) -> None:
     table = runner.format_table(columns, rows)
     assert table.splitlines()[0].startswith("country")
     assert len(table.splitlines()) == len(rows) + 2
+    columns, rows = runner.read_table(database, "gold_customer_cohorts")
+    assert columns == [
+        "cohort_month",
+        "month_number",
+        "cohort_size",
+        "active_customers",
+        "retention_rate",
+    ]
+    assert rows
+    # Month 0 is the first month of each cohort, so every customer is active
+    first_months = [row for row in rows if row[1] == 0]
+    assert first_months
+    assert all(row[3] == row[2] and row[4] == 1.0 for row in first_months)
+    assert all(0.0 <= row[4] <= 1.0 for row in rows)
 
 
 def test_default_data_uses_the_project_database(tmp_path: Path) -> None:

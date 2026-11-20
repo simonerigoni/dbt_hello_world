@@ -73,6 +73,25 @@ def run(
     return database
 
 
+def docs(
+    data_dir: Path = config.DATA,
+    project_dir: Path = config.DBT_PROJECT,
+    database: Path | None = None,
+) -> Path:
+    """Generate the static docs, the same single HTML file the Pages workflow publishes.
+
+    Returns the path of `target/static_index.html`.
+    """
+    database = database or database_for(data_dir, project_dir)
+    database.parent.mkdir(parents=True, exist_ok=True)
+    output = project_dir / config.TARGET_DIR / config.STATIC_DOCS_FILE
+    with dbt_environment(project_dir, data_dir, database):
+        if not (project_dir / "dbt_packages").exists():
+            invoke(["deps"])
+        invoke(["docs", "generate", "--static"])
+    return output
+
+
 def read_table(database: Path, table: str) -> tuple[list[str], list[tuple]]:
     """Return the column names and the rows of a table, reading DuckDB directly."""
     with duckdb.connect(str(database)) as connection:

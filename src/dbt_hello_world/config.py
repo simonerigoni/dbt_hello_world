@@ -17,6 +17,9 @@ RAW_CUSTOMERS_FILE = "raw_customers.csv"
 RAW_ORDERS_FILE = "raw_orders.csv"
 LINEAGE_PNG = IMAGES / "dbt-dag.png"
 LINEAGE_JSON = IMAGES / "dbt-dag.json"
+# The single HTML file produced by `dbt docs generate --static`, also published by Pages.
+TARGET_DIR = "target"
+STATIC_DOCS_FILE = "static_index.html"
 
 # Read by sources.yml and profiles.yml, with the defaults of a plain `dbt build`.
 DATA_VARIABLE = "DBT_HELLO_WORLD_DATA"
@@ -28,7 +31,7 @@ DEFAULT_ORDERS = 50
 DEFAULT_SEED = 42
 
 # Gold tables printed by the CLI after a run.
-GOLD_TABLES = ["gold_revenue_by_country", "gold_customer_segments"]
+GOLD_TABLES = ["gold_revenue_by_country", "gold_customer_segments", "gold_customer_cohorts"]
 
 # Must match the country_codes seed, so every customer has a country code and a region.
 COUNTRIES = ["Italy", "Netherlands", "Switzerland"]
