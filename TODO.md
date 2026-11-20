@@ -31,3 +31,5 @@ Overview of the status of the tasks of this project.
 - [x] Publish the dbt docs on GitHub Pages
 - [x] SQL linting with SQLFluff and lineage graph check in the tests
 - [x] Custom generic test `is_positive`
+- [x] Python package with the `src` layout and the `dbt-hello-world` CLI: data generator, runner and lineage graph
+- [x] dbt Python model `gold_customer_segments`

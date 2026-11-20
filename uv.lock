@@ -720,10 +720,11 @@ wheels = [
 [[package]]
 name = "dbt-hello-world"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "dbt-core" },
     { name = "dbt-duckdb" },
+    { name = "duckdb" },
 ]
 
 [package.dev-dependencies]
@@ -741,6 +742,7 @@ dev = [
 requires-dist = [
     { name = "dbt-core", specifier = ">=1.12.7" },
     { name = "dbt-duckdb", specifier = ">=1.11.1" },
+    { name = "duckdb", specifier = ">=2.0.0" },
 ]
 
 [package.metadata.requires-dev]

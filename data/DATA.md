@@ -12,3 +12,5 @@ The CSV files are made-up sample data and they are declared as dbt sources in `d
 `_loaded_at` is the time the row was loaded, used by `dbt source freshness`. The sample data was loaded in early 2026, so the check warns that it is stale.
 
 The reference data is in the `country_codes` seed, `dbt_project/seeds/country_codes.csv`, with `country`, `country_code` and `region` for every country.
+
+These files are the default sample data. New random data with the same columns can be generated with `uv run dbt-hello-world generate`, which writes to `temp/data` by default, so these files are not overwritten. Its `_loaded_at` is the current time, so the freshness check passes on it.
