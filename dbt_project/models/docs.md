@@ -45,3 +45,16 @@ It is a **dbt Python model**, `models/gold/gold_customer_segments.py`. With dbt-
 inside DuckDB, and `dbt.ref` returns a DuckDB relation, so it uses the relation methods
 `aggregate` and `project` instead of pandas.
 {% enddocs %}
+
+{% docs gold_customer_cohorts %}
+Gold layer, one row per cohort month and number of months since the first completed
+order: the size of the cohort, how many of those customers still ordered in that month,
+and the retention rate.
+
+Customers are grouped by the month of their first completed order. Month 0 is that first
+month, so the retention rate is 1. Later months include the ones with no orders, with a
+retention rate of 0.
+
+It is a **dbt Python model**, `models/gold/gold_customer_cohorts.py`. It reads the silver
+orders, computes the cohorts in Python and returns a DuckDB relation, without pandas.
+{% enddocs %}

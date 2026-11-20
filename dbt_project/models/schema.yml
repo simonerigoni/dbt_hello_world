@@ -99,3 +99,43 @@ models:
           - accepted_values:
               arguments:
                 values: ["high", "medium", "low"]
+
+  - name: gold_customer_cohorts
+    description: "{{ doc('gold_customer_cohorts') }}"
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - cohort_month
+              - month_number
+    columns:
+      - name: cohort_month
+        description: Month of the first completed order of the customers in the cohort
+        data_tests:
+          - not_null
+      - name: month_number
+        description: Months since the cohort month, 0 is the first month
+        data_tests:
+          - not_null
+          - is_positive:
+              arguments:
+                allow_zero: true
+      - name: cohort_size
+        description: Number of customers whose first completed order is in the cohort month
+        data_tests:
+          - not_null
+          - is_positive
+      - name: active_customers
+        description: Customers of the cohort who placed at least one completed order in that month
+        data_tests:
+          - not_null
+          - is_positive:
+              arguments:
+                allow_zero: true
+      - name: retention_rate
+        description: Active customers divided by the cohort size, 1 in month 0
+        data_tests:
+          - not_null
+          - is_positive:
+              arguments:
+                allow_zero: true

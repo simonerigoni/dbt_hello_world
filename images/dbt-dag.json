@@ -55,16 +55,22 @@
       "row": 0
     },
     {
-      "name": "gold_customer_segments",
+      "name": "gold_customer_cohorts",
       "type": "model",
       "column": 3,
       "row": 1
     },
     {
+      "name": "gold_customer_segments",
+      "type": "model",
+      "column": 3,
+      "row": 2
+    },
+    {
       "name": "orders",
       "type": "semantic_model",
       "column": 3,
-      "row": 2
+      "row": 3
     },
     {
       "name": "revenue_dashboard",
@@ -101,6 +107,10 @@
     [
       "gold_revenue_by_country",
       "revenue_dashboard"
+    ],
+    [
+      "silver_orders",
+      "gold_customer_cohorts"
     ],
     [
       "silver_orders",

@@ -1,6 +1,7 @@
 """Command line interface: uv run dbt-hello-world <command>."""
 
 import argparse
+import webbrowser
 from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
@@ -11,7 +12,7 @@ from dbt_hello_world import config, generator, lineage, runner
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dbt-hello-world",
-        description="Generate sample data, run the dbt project and draw its lineage graph.",
+        description="Generate sample data, run the dbt project, draw its lineage graph and open the docs.",
     )
     commands = parser.add_subparsers(dest="command", required=True)
 
@@ -22,6 +23,9 @@ def build_parser() -> argparse.ArgumentParser:
     add_run_arguments(run, default_data=config.DATA)
 
     commands.add_parser("lineage", help="draw images/dbt-dag.png and images/dbt-dag.json")
+
+    docs = commands.add_parser("docs", help="generate the static docs and open them in the browser")
+    add_docs_arguments(docs, default_data=config.DATA)
 
     all_ = commands.add_parser("all", help="generate new data, then run the project on it")
     add_generate_arguments(all_)
@@ -72,6 +76,20 @@ def add_run_arguments(parser: argparse.ArgumentParser, default_data: Path) -> No
     )
 
 
+def add_docs_arguments(parser: argparse.ArgumentParser, default_data: Path) -> None:
+    parser.add_argument(
+        "--data",
+        type=Path,
+        default=default_data,
+        help="folder with the raw CSV files, default: data, the committed samples",
+    )
+    parser.add_argument(
+        "--no-open",
+        action="store_true",
+        help="write the HTML file without opening it in the browser",
+    )
+
+
 def positive(value: str) -> int:
     number = int(value)
     if number < 1:
@@ -93,6 +111,13 @@ def run(data_dir: Path, full_refresh: bool) -> None:
         print(runner.format_table(*runner.read_table(database, table)))
 
 
+def docs(data_dir: Path, open_browser: bool) -> None:
+    path = runner.docs(data_dir)
+    print(f"Static docs written to {path}")
+    if open_browser:
+        webbrowser.open(path.resolve().as_uri())
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
@@ -102,6 +127,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             run(args.data, args.full_refresh)
         elif args.command == "lineage":
             lineage.main()
+        elif args.command == "docs":
+            docs(args.data, open_browser=not args.no_open)
         else:
             # New data replaces the old one, so rebuild the incremental model from scratch
             run(generate(args), full_refresh=True)

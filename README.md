@@ -8,9 +8,9 @@ A simple [dbt](https://www.getdbt.com/) Hello World that uses a local [DuckDB](h
 
 - **Bronze**: `bronze_customers` and `bronze_orders` are views over the raw sources, unchanged.
 - **Silver**: `silver_orders` keeps only the completed orders, casts the types and adds the customer details. It is an incremental model, so after the first run it only processes the new orders instead of rebuilding the whole table.
-- **Gold**: `gold_revenue_by_country` is a table with the number of orders, the revenue and the average order value per country, plus the country code and region from the seed. `gold_customer_segments` is a dbt Python model that gives every customer a `high`, `medium` or `low` segment by revenue.
+- **Gold**: `gold_revenue_by_country` is a table with the number of orders, the revenue and the average order value per country, plus the country code and region from the seed. `gold_customer_segments` is a dbt Python model that gives every customer a `high`, `medium` or `low` segment by revenue. `gold_customer_cohorts` is a dbt Python model that groups customers by the month of their first completed order and computes the active customers and the retention rate for each following month.
 
-Python does real work too. The `dbt_hello_world` package in `src/dbt_hello_world` has a `dbt-hello-world` command line tool that generates new random data, runs the dbt project with dbt's Python API and prints the gold layer, and draws the lineage graph.
+Python does real work too. The `dbt_hello_world` package in `src/dbt_hello_world` has a `dbt-hello-world` command line tool that generates new random data, runs the dbt project with dbt's Python API and prints the gold layer, draws the lineage graph, and generates the static docs.
 
 The project also shows:
 
@@ -27,7 +27,7 @@ The project also shows:
 - **Semantic layer**: `models/semantic_models.yml` defines the `orders` semantic model on `silver_orders`, with the `total_revenue` and `number_of_orders` metrics. `metricflow_time_spine` is the small time spine, one row per day of 2026, that the semantic layer needs.
 - **Descriptions**: every source, seed, model and column is described in the YAML files, so they show up in the dbt docs. The longer ones are `{% docs %}` blocks in `models/docs.md`, used in the YAML files with `doc('...')`.
 - **Analysis**: `analyses/top_customers_by_revenue.sql` lists the top 3 customers by revenue. `dbt compile` writes its SQL to `target/compiled`, but it is never built in the database.
-- **Python model**: `models/gold/gold_customer_segments.py` is a dbt Python model, a `model(dbt, session)` function instead of a SQL file. With dbt-duckdb it runs inside DuckDB and `dbt.ref` returns a DuckDB relation, so it aggregates the silver orders with the relation methods `aggregate` and `project`, without pandas.
+- **Python models**: `models/gold/gold_customer_segments.py` and `models/gold/gold_customer_cohorts.py` are dbt Python models, a `model(dbt, session)` function instead of a SQL file. With dbt-duckdb they run inside DuckDB and `dbt.ref` returns a DuckDB relation, so they need no pandas. The segments model aggregates the silver orders with the relation methods `aggregate` and `project`. The cohorts model reads the silver orders and computes the monthly retention in Python.
 - **Macro**: `safe_divide` in `macros/safe_divide.sql` divides and rounds, returning null instead of failing when the denominator is 0. The gold model uses it for the average order value.
 
 ## Software and libraries
@@ -98,19 +98,20 @@ The easiest way is the `dbt-hello-world` command line tool, from the root of the
 
 | Command | What it does |
 | --- | --- |
-| `uv run dbt-hello-world run` | Runs `dbt deps` if the packages are missing, `dbt build` and `dbt source freshness` on the committed sample data, then prints the two gold tables |
+| `uv run dbt-hello-world run` | Runs `dbt deps` if the packages are missing, `dbt build` and `dbt source freshness` on the committed sample data, then prints the gold tables |
 | `uv run dbt-hello-world generate` | Writes new random `raw_customers.csv` and `raw_orders.csv` to `temp/data` |
 | `uv run dbt-hello-world run --data temp/data` | Same as `run`, on the generated data |
 | `uv run dbt-hello-world all` | `generate` and then `run --full-refresh` on the new data, in one go |
 | `uv run dbt-hello-world lineage` | Draws `images/dbt-dag.png` and writes `images/dbt-dag.json` |
+| `uv run dbt-hello-world docs` | Generates the static docs (`dbt docs generate --static`) and opens `dbt_project/target/static_index.html` in the browser, the same file the Pages workflow publishes |
 
-`generate` and `all` take `--customers` (default 10), `--orders` (default 50), `--seed` (default 42), `--output` (default `temp/data`) and `--loaded-at`. The same seed always gives the same data. Only `_loaded_at` changes, it is the current time unless `--loaded-at` is given, so the freshness check passes on freshly generated data. The countries are the ones in the `country_codes` seed and the orders are in 2026, so all the tests pass.
+`docs` takes `--data` like `run`, and `--no-open` to write the HTML file without opening it. `generate` and `all` take `--customers` (default 10), `--orders` (default 50), `--seed` (default 42), `--output` (default `temp/data`) and `--loaded-at`. The same seed always gives the same data. Only `_loaded_at` changes, it is the current time unless `--loaded-at` is given, so the freshness check passes on freshly generated data. The countries are the ones in the `country_codes` seed and the orders are in 2026, so all the tests pass.
 
 The generated data goes to `temp/data`, which Git ignores, and not to `data`, so the committed samples are never overwritten. `run --data` points the dbt sources to another folder through the `DBT_HELLO_WORLD_DATA` environment variable, and every data folder other than `data` gets its own `dbt_hello_world.duckdb` file inside it, through `DBT_HELLO_WORLD_DATABASE`, so different data sets never mix in the incremental model and in the snapshot. Use `run --full-refresh` after generating new data into the same folder. Run `uv run dbt-hello-world --help` or `uv run dbt-hello-world <command> --help` for all the options.
 
 All the dbt files are in the `dbt_project` folder. From the `dbt_project` folder, first run `uv run dbt deps` to install the `dbt_utils` package, then `uv run dbt build` to load the seed, build the models and the snapshot and run the tests. The data ends up in the local `dbt_hello_world.duckdb` file.
 
-To see the gold layer, run `uv run dbt show --select gold_revenue_by_country`. `dbt show` cannot preview Python models, so use `uv run dbt-hello-world run` to see `gold_customer_segments`. To check the freshness of the raw data, run `uv run dbt source freshness`: it warns that the sample data is stale, which is expected.
+To see the gold layer, run `uv run dbt show --select gold_revenue_by_country`. `dbt show` cannot preview Python models, so use `uv run dbt-hello-world run` to see `gold_customer_segments` and `gold_customer_cohorts`. To check the freshness of the raw data, run `uv run dbt source freshness`: it warns that the sample data is stale, which is expected.
 
 The metrics are parsed and validated by dbt, but querying them needs [MetricFlow](https://docs.getdbt.com/docs/build/about-metricflow) or dbt Cloud. MetricFlow is not a dependency of the project, but it can be run on the fly with uv, for example after a `dbt build`:
 
@@ -155,7 +156,7 @@ This is the lineage graph of the project, with the same colors as in the dbt doc
 
 The dbt docs, with the interactive lineage graph, are published on GitHub Pages at [simonerigoni.github.io/dbt_hello_world](https://simonerigoni.github.io/dbt_hello_world/). The `Docs` workflow in `.github/workflows/docs.yml` builds the project, generates the static docs and deploys them on every push to `main`.
 
-To browse the interactive docs locally, from the `dbt_project` folder run `uv run dbt docs generate` and then `uv run dbt docs serve`. To get a single HTML file that opens without a server, run `uv run dbt docs generate --static` and open `target/static_index.html`.
+To browse the docs locally, run `uv run dbt-hello-world docs` from the root of the repository: it generates the same `target/static_index.html` file as the Pages workflow and opens it in the browser. Use `--no-open` to only write the file. From the `dbt_project` folder you can also run `uv run dbt docs generate` and then `uv run dbt docs serve` for the interactive docs, or `uv run dbt docs generate --static` and open `target/static_index.html`.
 
 ## List of activities
 
