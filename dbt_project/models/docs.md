@@ -36,3 +36,12 @@ used by the `revenue_dashboard` exposure.
 One row per day, the time spine that the dbt semantic layer (MetricFlow) needs to aggregate the
 metrics over time. It covers 2026, the year of the sample data.
 {% enddocs %}
+
+{% docs gold_customer_segments %}
+Gold layer, one row per customer with completed orders: number of orders, total revenue and a
+segment, `high` from 200 euros, `medium` from 100 and `low` below.
+
+It is a **dbt Python model**, `models/gold/gold_customer_segments.py`. With dbt-duckdb it runs
+inside DuckDB, and `dbt.ref` returns a DuckDB relation, so it uses the relation methods
+`aggregate` and `project` instead of pandas.
+{% enddocs %}

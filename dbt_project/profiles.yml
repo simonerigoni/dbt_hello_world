@@ -3,5 +3,6 @@ dbt_hello_world:
   outputs:
     dev:
       type: duckdb
-      path: dbt_hello_world.duckdb
+      # DBT_HELLO_WORLD_DATABASE lets the dbt-hello-world CLI use another DuckDB file
+      path: "{{ env_var('DBT_HELLO_WORLD_DATABASE', 'dbt_hello_world.duckdb') }}"
       threads: 1

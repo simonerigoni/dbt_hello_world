@@ -72,3 +72,30 @@ models:
       - name: date_day
         description: Day
         granularity: day
+  - name: gold_customer_segments
+    description: "{{ doc('gold_customer_segments') }}"
+    columns:
+      - name: customer_id
+        description: Customer identifier
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_name
+        description: Customer name
+      - name: country
+        description: Country where the customer lives
+      - name: number_of_orders
+        description: Number of completed orders of the customer
+        data_tests:
+          - is_positive
+      - name: revenue
+        description: Total amount of the completed orders of the customer in euros
+        data_tests:
+          - is_positive
+      - name: segment
+        description: high from 200 euros of revenue, medium from 100, low below
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["high", "medium", "low"]

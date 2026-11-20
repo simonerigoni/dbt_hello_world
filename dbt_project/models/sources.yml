@@ -4,7 +4,8 @@ sources:
   - name: raw
     description: "{{ doc('raw_source') }}"
     meta:
-      external_location: "../data/{name}.csv"
+      # DBT_HELLO_WORLD_DATA lets the dbt-hello-world CLI point the sources to another folder
+      external_location: "{{ env_var('DBT_HELLO_WORLD_DATA', '../data') }}/{name}.csv"
     config:
       loaded_at_field: _loaded_at
       # Only warn, the sample data is static so it is always stale
