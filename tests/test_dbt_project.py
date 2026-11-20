@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from dbt_hello_world import DATA, DBT_PROJECT, ROOT, generator, lineage, runner
+from dbt_hello_world import config, generator, lineage, runner
 
 IGNORED = shutil.ignore_patterns("target", "logs", "dbt_packages", "*.duckdb", ".user.yml")
 
@@ -22,11 +22,11 @@ def project_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """
     root = tmp_path_factory.mktemp("dbt")
     target = root / "dbt_project"
-    shutil.copytree(DBT_PROJECT, target, ignore=IGNORED)
+    shutil.copytree(config.DBT_PROJECT, target, ignore=IGNORED)
     # The sources read the CSV files from ../data, relative to the dbt_project folder
-    shutil.copytree(DATA, root / "data")
-    shutil.copy(ROOT / ".sqlfluff", root / ".sqlfluff")
-    with runner.dbt_environment(target, root / "data", target / runner.DATABASE_FILE):
+    shutil.copytree(config.DATA, root / "data")
+    shutil.copy(config.ROOT / ".sqlfluff", root / ".sqlfluff")
+    with runner.dbt_environment(target, root / "data", target / config.DATABASE_FILE):
         runner.invoke(["deps"])
     return target
 
@@ -66,24 +66,24 @@ def test_failing_dbt_command_raises(in_project: Path) -> None:
 def test_run_on_generated_data(project_dir: Path, tmp_path: Path) -> None:
     """The runner builds the project on freshly generated data, which is not stale."""
     data_dir = tmp_path / "data"
-    generator.write(generator.generate(40, 60, seed=42), data_dir)
+    generator.write(generator.generate(40, 60, seed=config.DEFAULT_SEED), data_dir)
     database = runner.run(data_dir, project_dir, full_refresh=True)
-    assert database == data_dir / runner.DATABASE_FILE
+    assert database == data_dir / config.DATABASE_FILE
     # A second run is incremental and the packages are already installed
     assert runner.run(data_dir, project_dir) == database
     columns, rows = runner.read_table(database, "gold_customer_segments")
     assert columns[-1] == "segment"
     assert {row[-1] for row in rows} == {"high", "medium", "low"}
     columns, rows = runner.read_table(database, "gold_revenue_by_country")
-    assert {row[0] for row in rows} == set(generator.COUNTRIES)
+    assert {row[0] for row in rows} == set(config.COUNTRIES)
     table = runner.format_table(columns, rows)
     assert table.splitlines()[0].startswith("country")
     assert len(table.splitlines()) == len(rows) + 2
 
 
 def test_default_data_uses_the_project_database(tmp_path: Path) -> None:
-    assert runner.database_for(DATA, tmp_path) == tmp_path / runner.DATABASE_FILE
-    assert runner.database_for(tmp_path) == tmp_path / runner.DATABASE_FILE
+    assert runner.database_for(config.DATA, tmp_path) == tmp_path / config.DATABASE_FILE
+    assert runner.database_for(tmp_path) == tmp_path / config.DATABASE_FILE
 
 
 def test_sqlfluff(project_dir: Path) -> None:
@@ -103,7 +103,7 @@ def test_lineage_graph_is_up_to_date(project_dir: Path) -> None:
     If this fails, run `uv run dbt-hello-world lineage` and commit both files.
     """
     description = lineage.describe(*lineage.load_graph(project_dir))
-    committed = lineage.DESCRIPTION.read_text(encoding="utf-8")
+    committed = config.LINEAGE_JSON.read_text(encoding="utf-8")
     assert lineage.to_json(description) == committed
 
 
@@ -111,6 +111,6 @@ def test_lineage_main(project_dir: Path, tmp_path: Path) -> None:
     output = tmp_path / "dag.png"
     lineage.main(project_dir, output)
     assert output.exists()
-    assert output.with_suffix(".json").read_text(encoding="utf-8") == lineage.DESCRIPTION.read_text(
+    assert output.with_suffix(".json").read_text(encoding="utf-8") == config.LINEAGE_JSON.read_text(
         encoding="utf-8"
     )

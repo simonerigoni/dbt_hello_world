@@ -8,35 +8,32 @@ from pathlib import Path
 import duckdb
 from dbt.cli.main import dbtRunner
 
-from dbt_hello_world import DATA, DBT_PROJECT
-
-DATABASE_FILE = "dbt_hello_world.duckdb"
-# Read by sources.yml and profiles.yml, with the defaults of a plain `dbt build`
-DATA_VARIABLE = "DBT_HELLO_WORLD_DATA"
-DATABASE_VARIABLE = "DBT_HELLO_WORLD_DATABASE"
+from dbt_hello_world import config
 
 
 class DbtError(RuntimeError):
     """A dbt command failed."""
 
 
-def database_for(data_dir: Path, project_dir: Path = DBT_PROJECT) -> Path:
+def database_for(data_dir: Path, project_dir: Path = config.DBT_PROJECT) -> Path:
     """The default sample data uses the DuckDB file in dbt_project, like a plain `dbt build`.
 
     Any other data folder gets its own DuckDB file inside it, so different data sets never mix
     in the incremental model and in the snapshot.
     """
-    if data_dir.resolve() == DATA.resolve():
-        return project_dir / DATABASE_FILE
-    return data_dir / DATABASE_FILE
+    if data_dir.resolve() == config.DATA.resolve():
+        return project_dir / config.DATABASE_FILE
+    return data_dir / config.DATABASE_FILE
 
 
 @contextlib.contextmanager
 def dbt_environment(project_dir: Path, data_dir: Path, database: Path) -> Iterator[None]:
     """Run from the dbt project folder with the sources and the database set to absolute paths."""
-    previous = {name: os.environ.get(name) for name in (DATA_VARIABLE, DATABASE_VARIABLE)}
-    os.environ[DATA_VARIABLE] = str(data_dir.resolve())
-    os.environ[DATABASE_VARIABLE] = str(database.resolve())
+    previous = {
+        name: os.environ.get(name) for name in (config.DATA_VARIABLE, config.DATABASE_VARIABLE)
+    }
+    os.environ[config.DATA_VARIABLE] = str(data_dir.resolve())
+    os.environ[config.DATABASE_VARIABLE] = str(database.resolve())
     try:
         with contextlib.chdir(project_dir):
             yield
@@ -56,8 +53,8 @@ def invoke(args: Sequence[str]) -> None:
 
 
 def run(
-    data_dir: Path = DATA,
-    project_dir: Path = DBT_PROJECT,
+    data_dir: Path = config.DATA,
+    project_dir: Path = config.DBT_PROJECT,
     database: Path | None = None,
     full_refresh: bool = False,
 ) -> Path:

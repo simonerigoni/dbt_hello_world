@@ -5,11 +5,7 @@ from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 
-from dbt_hello_world import DATA, ROOT, generator, lineage, runner
-
-# Generated data goes to the ignored temp folder, so the committed samples in data are kept
-GENERATED = ROOT / "temp" / "data"
-GOLD_TABLES = ["gold_revenue_by_country", "gold_customer_segments"]
+from dbt_hello_world import config, generator, lineage, runner
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -23,7 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_generate_arguments(generate)
 
     run = commands.add_parser("run", help="run dbt deps and build, then print the gold layer")
-    add_run_arguments(run, default_data=DATA)
+    add_run_arguments(run, default_data=config.DATA)
 
     commands.add_parser("lineage", help="draw images/dbt-dag.png and images/dbt-dag.json")
 
@@ -33,13 +29,28 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def add_generate_arguments(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--customers", type=positive, default=10, help="default: 10")
-    parser.add_argument("--orders", type=positive, default=50, help="default: 50")
-    parser.add_argument("--seed", type=int, default=42, help="random seed, default: 42")
+    parser.add_argument(
+        "--customers",
+        type=positive,
+        default=config.DEFAULT_CUSTOMERS,
+        help=f"default: {config.DEFAULT_CUSTOMERS}",
+    )
+    parser.add_argument(
+        "--orders",
+        type=positive,
+        default=config.DEFAULT_ORDERS,
+        help=f"default: {config.DEFAULT_ORDERS}",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=config.DEFAULT_SEED,
+        help=f"random seed, default: {config.DEFAULT_SEED}",
+    )
     parser.add_argument(
         "--output",
         type=Path,
-        default=GENERATED,
+        default=config.GENERATED,
         help="folder of the CSV files, default: temp/data",
     )
     parser.add_argument(
@@ -77,7 +88,7 @@ def generate(args: argparse.Namespace) -> Path:
 
 def run(data_dir: Path, full_refresh: bool) -> None:
     database = runner.run(data_dir, full_refresh=full_refresh)
-    for table in GOLD_TABLES:
+    for table in config.GOLD_TABLES:
         print(f"\n{table}\n")
         print(runner.format_table(*runner.read_table(database, table)))
 
