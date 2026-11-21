@@ -107,7 +107,21 @@ The easiest way is the `dbt-hello-world` command line tool, from the root of the
 
 `docs` takes `--data` like `run`, and `--no-open` to write the HTML file without opening it. `generate` and `all` take `--customers` (default 10), `--orders` (default 50), `--seed` (default 42), `--output` (default `temp/data`) and `--loaded-at`. The same seed always gives the same data. Only `_loaded_at` changes, it is the current time unless `--loaded-at` is given, so the freshness check passes on freshly generated data. The countries are the ones in the `country_codes` seed and the orders are in 2026, so all the tests pass.
 
-The generated data goes to `temp/data`, which Git ignores, and not to `data`, so the committed samples are never overwritten. `run --data` points the dbt sources to another folder through the `DBT_HELLO_WORLD_DATA` environment variable, and every data folder other than `data` gets its own `dbt_hello_world.duckdb` file inside it, through `DBT_HELLO_WORLD_DATABASE`, so different data sets never mix in the incremental model and in the snapshot. Use `run --full-refresh` after generating new data into the same folder. Run `uv run dbt-hello-world --help` or `uv run dbt-hello-world <command> --help` for all the options.
+### Using generated data
+
+`generate` writes `raw_customers.csv` and `raw_orders.csv` to `temp/data`, which Git ignores, so the committed samples in `data` are never overwritten.
+
+`run --data temp/data` sets `DBT_HELLO_WORLD_DATA` to that folder. In `sources.yml` this variable is the folder of the CSV files, and it defaults to `../data`, the committed samples. It also sets `DBT_HELLO_WORLD_DATABASE` to a `dbt_hello_world.duckdb` file inside the same folder, so the incremental model and the snapshot of one data set never mix with another. Bronze then reads the generated CSVs, and everything downstream follows from there.
+
+After generating new data into the same folder, use `run --data temp/data --full-refresh` so the incremental model and the snapshot start from scratch. `all` does both steps in one go.
+
+The same thing works with plain dbt, from the `dbt_project` folder:
+
+```bash
+DBT_HELLO_WORLD_DATA=../temp/data DBT_HELLO_WORLD_DATABASE=../temp/data/dbt_hello_world.duckdb uv run dbt build
+```
+
+Run `uv run dbt-hello-world --help` or `uv run dbt-hello-world <command> --help` for all the options.
 
 All the dbt files are in the `dbt_project` folder. From the `dbt_project` folder, first run `uv run dbt deps` to install the `dbt_utils` package, then `uv run dbt build` to load the seed, build the models and the snapshot and run the tests. The data ends up in the local `dbt_hello_world.duckdb` file.
 
