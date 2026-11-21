@@ -13,4 +13,4 @@ The CSV files are made-up sample data and they are declared as dbt sources in `d
 
 The reference data is in the `country_codes` seed, `dbt_project/seeds/country_codes.csv`, with `country`, `country_code` and `region` for every country.
 
-These files are the default sample data. New random data with the same columns can be generated with `uv run dbt-hello-world generate`, which writes to `temp/data` by default, so these files are not overwritten. Its `_loaded_at` is the current time, so the freshness check passes on it.
+These files are the default sample data. New random data with the same columns can be generated with `uv run dbt-hello-world generate`, which writes to `temp/data` by default, so these files are not overwritten. Its `_loaded_at` is the current time, so the freshness check passes on it. To run the project on that data, see [Using generated data](../README.md#using-generated-data).
