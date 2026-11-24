@@ -182,4 +182,4 @@ Have a look at [LICENSE.md](LICENSE.md).
 
 ## Outro
 
-I hope this repository was interesting and thank you for taking the time to check it out. Let me know if you have any question and if you like the content that I create feel free to [buy me a coffee](https://www.buymeacoffee.com/simonerigoni).
+I hope this repository was interesting and thank you for taking the time to check it out. On my Medium you can find a more in depth [story](https://medium.com/@simone-rigoni01/hello-world-from-dbt-ec4c4315056c). Let me know if you have any question and if you like the content that I create feel free to [buy me a coffee](https://www.buymeacoffee.com/simonerigoni).

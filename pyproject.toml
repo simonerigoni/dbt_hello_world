@@ -18,6 +18,7 @@ dbt-hello-world = "dbt_hello_world.cli:main"
 
 [project.urls]
 Repository = "https://github.com/simonerigoni/dbt_hello_world"
+Medium = "https://medium.com/@simone-rigoni01/hello-world-from-dbt-ec4c4315056c"
 Documentation = "https://simonerigoni.github.io/dbt_hello_world/"
 
 [build-system]
